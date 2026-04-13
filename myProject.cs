@@ -1,9 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+
 class Program
 {
+    static string filePath = "students.txt";
+
     static void Main()
     {
-        int choice;
+        int choice = 0;
 
         do
         {
@@ -15,172 +21,236 @@ class Program
             Console.WriteLine("5. Exit");
 
             Console.Write("Enter choice: ");
-            choice = Convert.ToInt32(Console.ReadLine());
+
+            if (!int.TryParse(Console.ReadLine(), out choice))
+            {
+                Console.WriteLine("Invalid input!");
+                continue;
+            }
 
             switch (choice)
             {
                 case 1:
                     RegisterStudent();
                     break;
-
                 case 2:
                     EnrollSubjects();
                     break;
-
                 case 3:
                     EnterGrades();
                     break;
-
                 case 4:
                     ShowGrades();
+                    break;
+                case 5:
+                    Console.WriteLine("Exiting...");
+                    break;
+                default:
+                    Console.WriteLine("Invalid choice!");
                     break;
             }
 
         } while (choice != 5);
     }
 
-        static void RegisterStudent()
+    // ================= MODELS =================
+    class Student
     {
-        Console.Write("First Name: ");
-        string fname = Console.ReadLine();
+        public string fname { get; set; }
+        public string mi { get; set; }
+        public string lname { get; set; }
+        public string birthdate { get; set; }
+        public int age { get; set; }
+        public string address { get; set; }
+        public string contact { get; set; }
+        public string course { get; set; }
+        public int year { get; set; }
 
-        Console.Write("Middle Initial: ");
-        string mi = Console.ReadLine();
-
-        Console.Write("Last Name: ");
-        string lname = Console.ReadLine();
-
-        Console.Write("Birthdate: ");
-        string birth = Console.ReadLine();
-
-        Console.Write("Age: ");
-        string age = Console.ReadLine();
-
-        Console.Write("Address: ");
-        string address = Console.ReadLine();
-
-        Console.Write("Contact Number: ");
-        string contact = Console.ReadLine();
-
-        Console.Write("Course: ");
-        string course = Console.ReadLine();
-
-        Console.Write("Year: ");
-        string year = Console.ReadLine();
-
-        // string student = $"{lname},{fname},{mi},{birth},{age},{address},{contact},{course},{year}";
-       
-        string student = "{\n" +
-                 "  \"Student\": [\n" +
-                 "    {\n" +
-                 $"      \"lname\": \"{lname}\",\n" +
-                 $"      \"fname\": \"{fname}\",\n" +
-                 $"      \"mi\": \"{mi}\",\n" +
-                 $"      \"birthdate\": \"{birth}\",\n" +
-                 $"      \"age\": {age},\n" +
-                 $"      \"address\": \"{address}\",\n" +
-                 $"      \"number\": \"{contact}\",\n" +
-                 $"      \"subject\": \"{course}\",\n" +
-                 $"      \"year\": {year}\n" +
-                 "    }\n" +
-                 "  ]\n" +
-                 "}";
-
-        File.AppendAllText("data.txt", student + Environment.NewLine);
-
-        Console.WriteLine("Student Registered Successfully!");
+        public List<Subject> subjects { get; set; } = new List<Subject>();
     }
 
-        static void EnrollSubjects()
+    class Subject
     {
-        Console.Write("Enter Student Last Name: ");
-        string lname = Console.ReadLine();
+        public string subjectName { get; set; }
+        public string subjectId { get; set; }
+        public string grade { get; set; }
+    }
 
-        if (!File.ReadAllText("students.txt").Contains(lname))
+    // ================= FEATURES =================
+    static void RegisterStudent()
+    {
+        List<Student> students;
+
+        if (File.Exists(filePath))
         {
-            Console.WriteLine("Student not registered!");
+            string json = File.ReadAllText(filePath);
+            students = string.IsNullOrWhiteSpace(json)
+                ? new List<Student>()
+                : JsonSerializer.Deserialize<List<Student>>(json);
+        }
+        else
+        {
+            students = new List<Student>();
+        }
+
+        Student student = new Student();
+
+        Console.Write("First Name: ");
+        student.fname = Console.ReadLine();
+
+        Console.Write("Middle Initial: ");
+        student.mi = Console.ReadLine();
+
+        Console.Write("Last Name: ");
+        student.lname = Console.ReadLine();
+
+        Console.Write("Birthdate: ");
+        student.birthdate = Console.ReadLine();
+
+        Console.Write("Age: ");
+        student.age = int.Parse(Console.ReadLine());
+
+        Console.Write("Address: ");
+        student.address = Console.ReadLine();
+
+        Console.Write("Contact Number: ");
+        student.contact = Console.ReadLine();
+
+        Console.Write("Course: ");
+        student.course = Console.ReadLine();
+
+        Console.Write("Year: ");
+        student.year = int.Parse(Console.ReadLine());
+
+        students.Add(student);
+
+        string output = JsonSerializer.Serialize(students, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        File.WriteAllText(filePath, output);
+
+        Console.WriteLine("Student Registered!");
+    }
+
+    static void EnrollSubjects()
+    {
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine("No data found!");
             return;
         }
 
+        string json = File.ReadAllText(filePath);
+        var students = JsonSerializer.Deserialize<List<Student>>(json);
+
+        Console.Write("Enter Student Last Name: ");
+        string lname = Console.ReadLine();
+
+        var student = students.Find(s => s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
+
+        if (student == null)
+        {
+            Console.WriteLine("Student not found!");
+            return;
+        }
+
+        Subject subject = new Subject();
+
         Console.Write("Subject Name: ");
-        string subName = Console.ReadLine();
+        subject.subjectName = Console.ReadLine();
 
         Console.Write("Subject ID: ");
-        string subID = Console.ReadLine();
+        subject.subjectId = Console.ReadLine();
 
-        // string subject = $"{lname},{subName},{subID}";
-       
-        string subject = "{\n" +
-         "  \"Subjects\": [\n" +
-         "    {\n" +
-         $"      \"lname\": \"{lname}\",\n" +
-         $"      \"subject\": \"{subName}\",\n" +
-         $"      \"subjectName\": \"{subID}\"\n" +
-         "    }\n" +
-         "  ]\n" +
-         "}";
+        student.subjects.Add(subject);
 
-        File.AppendAllText("data.txt", subject + Environment.NewLine);
+        string output = JsonSerializer.Serialize(students, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        File.WriteAllText(filePath, output);
 
         Console.WriteLine("Subject Enrolled!");
     }
 
-        static void EnterGrades()
+    static void EnterGrades()
     {
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine("No data found!");
+            return;
+        }
+
+        string json = File.ReadAllText(filePath);
+        var students = JsonSerializer.Deserialize<List<Student>>(json);
+
         Console.Write("Student Last Name: ");
         string lname = Console.ReadLine();
 
+        var student = students.Find(s => s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
+
+        if (student == null)
+        {
+            Console.WriteLine("Student not found!");
+            return;
+        }
+
         Console.Write("Subject Name: ");
-        string subject = Console.ReadLine();
+        string subjectName = Console.ReadLine();
+
+        var subject = student.subjects.Find(s => s.subjectName.Equals(subjectName, StringComparison.OrdinalIgnoreCase));
+
+        if (subject == null)
+        {
+            Console.WriteLine("Subject not found!");
+            return;
+        }
 
         Console.Write("Grade: ");
-        string grade = Console.ReadLine();
+        subject.grade = Console.ReadLine();
 
-        // string record = $"{lname},{subject},{grade}";
-        string record = "{\n" +
-         "  \"Grades\": [\n" +
-         "    {\n" +
-         $"      \"lname\": \"{lname}\",\n" +
-         $"      \"subject\": \"{subject}\",\n" +
-         $"      \"grade\": \"{grade}\"\n" +
-         "    }\n" +
-         "  ]\n" +
-         "}";
+        string output = JsonSerializer.Serialize(students, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
 
-        File.AppendAllText("data.txt", record + Environment.NewLine);
+        File.WriteAllText(filePath, output);
 
         Console.WriteLine("Grade Saved!");
     }
 
     static void ShowGrades()
     {
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine("No data found!");
+            return;
+        }
+
+        string json = File.ReadAllText(filePath);
+        var students = JsonSerializer.Deserialize<List<Student>>(json);
+
         Console.Write("Enter Student Last Name: ");
         string lname = Console.ReadLine();
 
-        string[] students = File.ReadAllLines("students.txt");
+        var student = students.Find(s => s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
 
-        foreach (string student in students)
+        if (student == null)
         {
-            string[] data = student.Split(',');
-
-            if (data[0] == lname)
-            {
-                Console.WriteLine("\n" + data[0] + ", " + data[1]); // Lastname, Firstname
-                Console.WriteLine(data[7] + " - " + data[8]); // Course - Year
-                Console.WriteLine();
-            }
+            Console.WriteLine("Student not found!");
+            return;
         }
 
-        string[] grades = File.ReadAllLines("grades.txt");
+        Console.WriteLine($"\n{student.lname}, {student.fname}");
+        Console.WriteLine($"{student.course} - Year {student.year}");
 
-        foreach (string grade in grades)
+        Console.WriteLine("\nSubjects & Grades:");
+        foreach (var sub in student.subjects)
         {
-            string[] g = grade.Split(',');
-
-            if (g[0] == lname)
-            {
-                Console.WriteLine(g[1] + " ----- " + g[2]);
-            }
+            Console.WriteLine($"{sub.subjectName} ({sub.subjectId}) - {sub.grade ?? "No Grade"}");
         }
     }
 }
