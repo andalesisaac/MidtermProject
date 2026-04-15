@@ -148,8 +148,9 @@ class Program
         Console.Write("Enter Student Last Name: ");
         string lname = Console.ReadLine();
 
-        var student = students.Find(s => s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
-
+var student = students.Find(s => 
+    s.fname.Equals(fname, StringComparison.OrdinalIgnoreCase) &&
+    s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
         if (student == null)
         {
             Console.WriteLine("Student not found!");
@@ -190,8 +191,9 @@ class Program
         Console.Write("Student Last Name: ");
         string lname = Console.ReadLine();
 
-        var student = students.Find(s => s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
-
+var student = students.Find(s => 
+    s.fname.Equals(fname, StringComparison.OrdinalIgnoreCase) &&
+    s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
         if (student == null)
         {
             Console.WriteLine("Student not found!");
@@ -236,8 +238,9 @@ class Program
         Console.Write("Enter Student Last Name: ");
         string lname = Console.ReadLine();
 
-        var student = students.Find(s => s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
-
+var student = students.Find(s => 
+    s.fname.Equals(fname, StringComparison.OrdinalIgnoreCase) &&
+    s.lname.Equals(lname, StringComparison.OrdinalIgnoreCase));
         if (student == null)
         {
             Console.WriteLine("Student not found!");
